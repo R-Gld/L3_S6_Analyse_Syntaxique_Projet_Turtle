@@ -14,13 +14,11 @@ LETTER [a-zA-Z]
 ID     {LETTER}({LETTER}|{DIGIT})*
 
 %%
-/* Numbers */
 {DIGIT}+"."{DIGIT}*([eE][+-]?{DIGIT}+)?     { yylval.value = strtod(yytext, NULL); return VALUE; }
 "."{DIGIT}+([eE][+-]?{DIGIT}+)?             { yylval.value = strtod(yytext, NULL); return VALUE; }
 {DIGIT}+([eE][+-]?{DIGIT}+)?                { yylval.value = strtod(yytext, NULL); return VALUE; }
 
 
-/* cmds */
 "forward"           { return KW_FORWARD; }
 "fw"                { return KW_FORWARD; }
 "backward"          { return KW_BACKWARD; }
@@ -43,7 +41,6 @@ ID     {LETTER}({LETTER}|{DIGIT})*
 "proc"              { return KW_PROC; }
 "call"              { return KW_CALL; }
 
-/* intern functions */
 "sin"             { return KW_SIN; }
 "cos"             { return KW_COS; }
 "tan"             { return KW_TAN; }
