@@ -66,6 +66,11 @@ void yyerror(struct ast *ret, const char *);
 %token            KW_GRAY    "gray"
 %token            KW_WHITE   "white"
 
+%left '+' '-'
+%left '*' '/'
+%right '^'
+%right UMINUS
+
 %type <node> unit cmds cmd expr
 
 %%
@@ -96,10 +101,15 @@ cmd:
 ;
 
 expr:
-    VALUE             { $$ = make_expr_value($1); }
-  | '(' expr ')'      { $$ = $2; }
-    /* TODO: add identifier */
-    /* TODO: add operators like * + / -  */
+    expr '+' expr       { $$ = make_expr_binop('+', $1, $3); }
+  | expr '-' expr       { $$ = make_expr_binop('-', $1, $3); }
+  | expr '*' expr       { $$ = make_expr_binop('*', $1, $3); }
+  | expr '/' expr       { $$ = make_expr_binop('/', $1, $3); }
+  | expr '^' expr       { $$ = make_expr_binop('^', $1, $3); }
+  | '-' expr %prec UMINUS  { $$ = make_expr_unop('-', $2); }
+  | '(' expr ')'        { $$ = $2; }
+  | NAME                { $$ = make_expr_name($1); }
+  | VALUE               { $$ = make_expr_value($1); }
 ;
 
 %%
