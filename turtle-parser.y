@@ -94,10 +94,10 @@ cmd:
   | KW_POSITION expr ',' expr  { $$ = make_cmd_position($2, $4); }
   | KW_COLOR color             { $$ = make_cmd_color($2); }
   | KW_PRINT expr              { $$ = make_cmd_print($2); }
-  | KW_SET NAME expr           { $$ = make_cmd_set($2, $3); }
+  | KW_SET NAME expr           { $$ = make_cmd_set(make_expr_name($2), $3); }
   | KW_REPEAT expr block       { $$ = make_cmd_repeat($2, $3); }
-  | KW_PROC NAME block         { $$ = make_cmd_proc($2, $3); }
-  | KW_CALL NAME               { $$ = make_cmd_call($2); }
+  | KW_PROC NAME block         { $$ = make_cmd_proc(make_expr_name($2), $3); }
+  | KW_CALL NAME               { $$ = make_cmd_call(make_expr_name($2)); }
 
 
   | KW_SIN '(' expr ')'       { $$ = make_func_sin($3); }
@@ -127,15 +127,15 @@ expr:
 
 color:
     expr ',' expr ',' expr  { $$ = make_color_expr($1, $3, $5); }
-  | KW_RED                  { $$ = make_color_keyword(KW_RED); }
-  | KW_GREEN                { $$ = make_color_keyword(KW_GREEN); }
-  | KW_BLUE                 { $$ = make_color_keyword(KW_BLUE); }
-  | KW_CYAN                 { $$ = make_color_keyword(KW_CYAN); }
-  | KW_MAGENTA              { $$ = make_color_keyword(KW_MAGENTA); }
-  | KW_YELLOW               { $$ = make_color_keyword(KW_YELLOW); }
-  | KW_BLACK                { $$ = make_color_keyword(KW_BLACK); }
-  | KW_GRAY                 { $$ = make_color_keyword(KW_GRAY); }
-  | KW_WHITE                { $$ = make_color_keyword(KW_WHITE); }
+  | KW_RED                  { $$ = make_color_keyword("red"); }
+  | KW_GREEN                { $$ = make_color_keyword("green"); }
+  | KW_BLUE                 { $$ = make_color_keyword("blue"); }
+  | KW_CYAN                 { $$ = make_color_keyword("cyan"); }
+  | KW_MAGENTA              { $$ = make_color_keyword("magenta"); }
+  | KW_YELLOW               { $$ = make_color_keyword("yellow"); }
+  | KW_BLACK                { $$ = make_color_keyword("black"); }
+  | KW_GRAY                 { $$ = make_color_keyword("gray"); }
+  | KW_WHITE                { $$ = make_color_keyword("white"); }
 ;
 
 %%
