@@ -71,11 +71,11 @@ struct ast_node *make_expr_binop(char op, struct ast_node *left, struct ast_node
 struct ast_node *make_expr_unop(char op, struct ast_node *expr);
 struct ast_node *make_cmd_forward(struct ast_node *expr);
 struct ast_node *make_cmd_backward(struct ast_node *expr);
-struct ast_node *make_func_cos(double value);
-struct ast_node *make_func_sin(double value);
-struct ast_node *make_func_tan(double value);
-struct ast_node *make_func_sqrt(double value);
-struct ast_node *make_func_random(double min, double max);
+struct ast_node *make_func_cos(struct ast_node *arg);
+struct ast_node *make_func_sin(struct ast_node *arg);
+struct ast_node *make_func_tan(struct ast_node *arg);
+struct ast_node *make_func_sqrt(struct ast_node *arg);
+struct ast_node *make_func_random(struct ast_node *min, struct ast_node *max);
 
 
 // root of the abstract syntax tree
