@@ -359,7 +359,7 @@ void node_stack_push(struct node_stack *self, struct ast_node *node) {
         self->capacity *= 2;
         struct ast_node **new_stack = realloc(self->stack, self->capacity * sizeof(struct ast_node *));
         if(!new_stack) {
-            perror("realloc");
+            perror("realloc (3)");
             exit(EXIT_FAILURE);
         }
         self->stack = new_stack;
