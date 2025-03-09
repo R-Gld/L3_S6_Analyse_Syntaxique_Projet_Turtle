@@ -4,3 +4,5 @@ prepare_to_md
 
 # Turtle files containing turtle source code
 *.turtle
+# Viewer folder containing the viewer executable.
+viewer/
