@@ -22,10 +22,10 @@ enum ast_cmd {
 // internal functions
 enum ast_func {
   FUNC_COS,
-  FUNC_RANDOM,
   FUNC_SIN,
-  FUNC_SQRT,
   FUNC_TAN,
+  FUNC_SQRT,
+  FUNC_RANDOM,
 };
 
 // kind of a node in the abstract syntax tree
@@ -65,12 +65,14 @@ struct ast_node {
 };
 
 
-// TODO: make some constructors to use in parser.y
-// for example:
 struct ast_node *make_expr_value(double value);
-
 struct ast_node *make_cmd_forward(struct ast_node *expr);
 struct ast_node *make_cmd_backward(struct ast_node *expr);
+struct ast_node *make_func_cos(double value);
+struct ast_node *make_func_sin(double value);
+struct ast_node *make_func_tan(double value);
+struct ast_node *make_func_sqrt(double value);
+struct ast_node *make_func_random(double min, double max);
 
 
 // root of the abstract syntax tree
