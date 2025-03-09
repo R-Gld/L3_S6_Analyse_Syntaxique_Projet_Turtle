@@ -244,7 +244,7 @@ struct ast_node *make_cmd_block(struct ast_node *expr) {
 struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_SET;
-    node->u.name = name->u.name;
+    node->u.name = strdup(name->u.name);
     node->children_count = 2;
     node->children[1] = name;
     node->children[0] = expr;
@@ -267,7 +267,7 @@ struct ast_node *make_cmd_repeat(struct ast_node *how_many, struct ast_node *blo
 struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_PROC;
-    node->u.name = name->u.name;
+    node->u.name = strdup(name->u.name);
     node->children_count = 2;
     node->children[0] = name;
     node->children[1] = block;
@@ -278,7 +278,7 @@ struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block) {
 struct ast_node *make_cmd_call(struct ast_node *name) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_CALL;
-    node->u.name = name->u.name;
+    node->u.name = strdup(name->u.name);
     node->children_count = 1;
     node->children[0] = name;
 
@@ -358,12 +358,6 @@ struct ast_node *make_color_keyword(const char *keyword) {
 }
 
 
-struct node_stack {
-    struct ast_node **stack;
-    size_t size;
-    size_t capacity;
-};
-
 void node_stack_push(struct node_stack *self, struct ast_node *node) {
     if(self->size >= self->capacity) {
         self->capacity *= 2;
@@ -406,6 +400,15 @@ void ast_destroy(const struct ast *self) {
             }
         }
 
+        // Free the name of the node because of the strdup used here and in the lexer.
+        if (current_node->kind == KIND_EXPR_NAME ||
+            current_node->kind == KIND_CMD_SET ||
+            current_node->kind == KIND_CMD_PROC ||
+            current_node->kind == KIND_CMD_CALL)
+        {
+            free(current_node->u.name);
+        }
+
         free(current_node);
     }
 
@@ -417,44 +420,105 @@ void ast_destroy(const struct ast *self) {
  */
 
 void context_create(struct context *self) {
+    self->x = 0.0;
+    self->y = 0.0;
+    self->up = false;
+    self->angle = 0.0; // set default angle to 0 degrees toward north.
 }
 
 /*
  * eval
  */
-
 void ast_eval(const struct ast *self, struct context *ctx) {
 
 }
 
 /**
- * print
- * TODO : real implementation
+ * TODO make an iterative version of this.
+ * @param node the AST node to print
+ * @param indent the indentation level
  */
-void ast_print(const struct ast *self) {
-    const struct ast_node *node = self->unit;
-    while (node) {
-        switch (node->kind) {
-            case KIND_CMD_SIMPLE:
-                printf("Command: %d\n", node->u.cmd);
-                break;
-            case KIND_EXPR_VALUE:
-                printf("Value: %f\n", node->u.value);
-                break;
-            case KIND_EXPR_NAME:
-                printf("Name: %s\n", node->u.name);
-                break;
-            case KIND_EXPR_BINOP:
-                printf("Binary Op: %c\n", node->u.op);
-                break;
-            case KIND_EXPR_UNOP:
-                printf("Unary Op: %c\n", node->u.op);
-                break;
-            case KIND_EXPR_FUNC:
-                printf("Function: %d\n", node->u.func);
-                break;
-            default: break;
+static void print_ast_internal(const struct ast_node *node, const int indent) {
+    if (!node) return;
+
+    // Imprimer l'indentation
+    for (int i = 0; i < indent; i++) {
+        printf("  ");
+    }
+
+    // Afficher le type et le contenu du nœud
+    switch (node->kind) {
+        case KIND_CMD_SIMPLE:
+            printf("CMD: ");
+            switch (node->u.cmd) {
+                case CMD_UP:       printf("up"); break;
+                case CMD_DOWN:     printf("down"); break;
+                case CMD_HOME:     printf("home"); break;
+                case CMD_FORWARD:  printf("forward"); break;
+                case CMD_BACKWARD: printf("backward"); break;
+                case CMD_LEFT:     printf("left"); break;
+                case CMD_RIGHT:    printf("right"); break;
+                case CMD_HEADING:  printf("heading"); break;
+                case CMD_POSITION: printf("position"); break;
+                case CMD_COLOR:    printf("color"); break;
+                case CMD_PRINT:    printf("print"); break;
+                default:           printf("unknown cmd");
+            }
+            break;
+        case KIND_CMD_REPEAT:
+            printf("repeat:");
+            break;
+        case KIND_CMD_BLOCK:
+            printf("block:");
+            break;
+        case KIND_CMD_PROC:
+            printf("proc: %s", node->u.name);
+            break;
+        case KIND_CMD_CALL:
+            printf("call: %s", node->u.name);
+            break;
+        case KIND_CMD_SET:
+            printf("set: %s", node->u.name);
+            break;
+        case KIND_EXPR_VALUE:
+            printf("value: %f", node->u.value);
+            break;
+        case KIND_EXPR_NAME:
+            printf("name: %s", node->u.name);
+            break;
+        case KIND_EXPR_BINOP:
+            printf("binop: %c", node->u.op);
+            break;
+        case KIND_EXPR_UNOP:
+            printf("unop: %c", node->u.op);
+            break;
+        case KIND_EXPR_FUNC:
+            printf("func: ");
+            switch (node->u.func) {
+                case FUNC_COS:     printf("cos"); break;
+                case FUNC_SIN:     printf("sin"); break;
+                case FUNC_TAN:     printf("tan"); break;
+                case FUNC_SQRT:    printf("sqrt"); break;
+                case FUNC_RANDOM:  printf("random"); break;
+                default:           printf("unknown func");
+            }
+            break;
+        default:
+            printf("unknown node type");
+    }
+    printf("\n");
+
+    for (size_t i = 0; i < node->children_count; i++) {
+        if (node->children[i]) {
+            print_ast_internal(node->children[i], indent + 1);
         }
-        node = node->next;
+    }
+    if (node->next) {
+        print_ast_internal(node->next, indent);
     }
 }
+
+void ast_print(const struct ast *self) {
+    print_ast_internal(self->unit, 0);
+}
+

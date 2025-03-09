@@ -97,6 +97,12 @@ struct ast {
   struct ast_node *unit;
 };
 
+struct node_stack {
+  struct ast_node **stack;
+  size_t size;
+  size_t capacity;
+};
+void node_stack_push(struct node_stack *self, struct ast_node *node);
 // do not forget to destroy properly! no leaks allowed!
 void ast_destroy(const struct ast *self);
 
@@ -117,6 +123,7 @@ void context_create(struct context *self);
 // print the tree as if it was a Turtle program
 void ast_print(const struct ast *self);
 
+static void print_ast_internal(const struct ast_node *node, const int indent);
 // evaluate the tree and generate some basic primitives
 void ast_eval(const struct ast *self, struct context *ctx);
 
