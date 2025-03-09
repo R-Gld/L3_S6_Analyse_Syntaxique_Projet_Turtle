@@ -80,13 +80,26 @@ cmds:
 ;
 
 cmd:
-    KW_FORWARD expr   { $$ = make_cmd_forward($2); }
-  | KW_BACKWARD expr  { $$ = make_cmd_backward($2); }
+    KW_UP expr             { /* Not yet implemented */ }
+  | KW_DOWN expr           { /* Not yet implemented */ }
+  | KW_HOME expr           { /* Not yet implemented */ }
+  | KW_FORWARD expr        { $$ = make_cmd_forward($2); }
+  | KW_BACKWARD expr       { $$ = make_cmd_backward($2); }
+  | KW_LEFT expr           { /* Not yet implemented */ }
+  | KW_RIGHT expr          { /* Not yet implemented */ }
+  | KW_HEADING expr        { /* Not yet implemented */ }
+  | KW_POSITION expr ',' expr       { /* Not yet implemented */ }
+  | KW_COLOR expr          { /* Not yet implemented */ }
+  | KW_HOME expr           { /* Not yet implemented */ }
+  | KW_PRINT expr          { /* Not yet implemented */ }
+  | KW_SET expr            { /* Not yet implemented */ }
 ;
 
 expr:
     VALUE             { $$ = make_expr_value($1); }
+  | '(' expr ')'      { $$ = $2; }
     /* TODO: add identifier */
+    /* TODO: add operators like * + / -  */
 ;
 
 %%
