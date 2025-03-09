@@ -348,8 +348,58 @@ struct ast_node *make_color_keyword(const char *keyword) {
 }
 
 
-void ast_destroy(struct ast *self) {
+struct node_stack {
+    struct ast_node **stack;
+    size_t size;
+    size_t capacity;
+};
 
+void node_stack_push(struct node_stack *self, struct ast_node *node) {
+    if(self->size >= self->capacity) {
+        self->capacity *= 2;
+        struct ast_node **new_stack = realloc(self->stack, self->capacity * sizeof(struct ast_node *));
+        if(!new_stack) {
+            perror("realloc");
+            exit(EXIT_FAILURE);
+        }
+        self->stack = new_stack;
+    }
+    self->stack[self->size++] = node;
+}
+
+/**
+ * Free the ast.
+ *
+ * Here we could have chosen a classic recursive destruction function of the tree, but we learn in the project of
+ * "théorie des langages" in the 5th semester that if the tree is huge, it could cause a stack overflow.
+ * So we use a stack to destroy the tree. A bit more complex that in cpp, but pretty cool.
+ *
+ * @param self the AST to destroy
+ */
+void ast_destroy(const struct ast *self) {
+    struct node_stack stack;
+    stack.capacity = 8;
+    stack.size = 0;
+    stack.stack = calloc(stack.capacity, sizeof(struct ast_node *));
+
+    node_stack_push(&stack, self->unit);
+
+    while (stack.size > 0) {
+        struct ast_node *current_node = stack.stack[--stack.size]; // pop
+        if (current_node->next != NULL) {
+            node_stack_push(&stack, current_node->next);
+        }
+        for (int i = 0; i < current_node->children_count; ++i) {
+            struct ast_node *child = current_node->children[i];
+            if (child != NULL) {
+                node_stack_push(&stack, child);
+            }
+        }
+
+        free(current_node);
+    }
+
+    free(stack.stack);
 }
 
 /*
@@ -357,7 +407,6 @@ void ast_destroy(struct ast *self) {
  */
 
 void context_create(struct context *self) {
-
 }
 
 /*
