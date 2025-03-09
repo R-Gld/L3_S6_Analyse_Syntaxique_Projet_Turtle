@@ -66,6 +66,9 @@ struct ast_node {
 
 
 struct ast_node *make_expr_value(double value);
+struct ast_node *make_expr_name(char *name);
+struct ast_node *make_expr_binop(char op, struct ast_node *left, struct ast_node *right);
+struct ast_node *make_expr_unop(char op, struct ast_node *expr);
 struct ast_node *make_cmd_forward(struct ast_node *expr);
 struct ast_node *make_cmd_backward(struct ast_node *expr);
 struct ast_node *make_func_cos(double value);
