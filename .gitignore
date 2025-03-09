@@ -1,3 +1,6 @@
 .idea
 cmake-build-*
 prepare_to_md
+
+# Turtle files containing turtle source code
+*.turtle
