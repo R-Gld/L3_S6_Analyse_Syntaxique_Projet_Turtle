@@ -98,6 +98,13 @@ cmd:
   | KW_HOME expr           { /* Not yet implemented */ }
   | KW_PRINT expr          { /* Not yet implemented */ }
   | KW_SET expr            { /* Not yet implemented */ }
+
+
+  | KW_COS expr            { $$ = make_func_cos($2); }
+  | KW_SIN expr            { $$ = make_func_sin($2); }
+  | KW_TAN expr            { $$ = make_func_tan($2); }
+  | KW_SQRT expr           { $$ = make_func_sqrt($2); }
+  | KW_RANDOM '(' expr ',' expr ')' { $$ = make_func_random($3, $5); }
 ;
 
 expr:
