@@ -57,6 +57,17 @@ ID     {LETTER}({LETTER}|{DIGIT})*
 "gray"            { return KW_GRAY; }
 "white"           { return KW_WHITE; }
 
+"("   { return '('; }
+")"   { return ')'; }
+","   { return ','; }
+
+"-"   { return '-'; }
+"+"   { return '+'; }
+"*"   { return '*'; }
+"/"   { return '/'; }
+"^"   { return '^'; }
+
+
 "#".*             { /* Ignore the comment */ }
 
 {ID}              { yylval.name = strdup(yytext); return NAME; }
