@@ -245,7 +245,7 @@ struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_SET;
     node->u.name = name->u.name;
-    node->children_count = 1;
+    node->children_count = 2;
     node->children[1] = name;
     node->children[0] = expr;
 
