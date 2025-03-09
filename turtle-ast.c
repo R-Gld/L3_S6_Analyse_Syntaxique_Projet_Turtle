@@ -331,20 +331,30 @@ struct ast_node *make_color_keyword(const char *keyword) {
         // Black case, at this point we cannot have another keyword than 'black' because the keyword are hard-coded in the lexer.
         r = g = b = 0.0;
     }
-    struct ast_node *color_nodes = calloc(3, sizeof(struct ast_node));
-    struct ast_node red_node = color_nodes[0], green_node = color_nodes[1], blue_node = color_nodes[2];
+    struct ast_node *red_node = malloc(sizeof(struct ast_node));
+    struct ast_node *green_node = malloc(sizeof(struct ast_node));
+    struct ast_node *blue_node = malloc(sizeof(struct ast_node));
 
-    for (int i = 0; i < 3; ++i) {
-        color_nodes[i].kind = KIND_EXPR_VALUE;
-        color_nodes[i].children_count = 0;
-        color_nodes[i].next = NULL;
+    if (!red_node || !green_node || !blue_node) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
     }
 
-    red_node.u.value = r;
-    green_node.u.value = g;
-    blue_node.u.value = b;
+    red_node->kind = KIND_EXPR_VALUE;
+    red_node->u.value = r;
+    red_node->children_count = 0;
+    red_node->next = NULL;
 
-    return make_color_expr(&red_node, &green_node, &blue_node);
+    green_node->kind = KIND_EXPR_VALUE;
+    green_node->u.value = g;
+    green_node->children_count = 0;
+    green_node->next = NULL;
+
+    blue_node->kind = KIND_EXPR_VALUE;
+    blue_node->u.value = b;
+    blue_node->children_count = 0;
+    blue_node->next = NULL;
+    return make_color_expr(red_node, green_node, blue_node);
 }
 
 
