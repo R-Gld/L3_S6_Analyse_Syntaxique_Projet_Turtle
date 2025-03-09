@@ -505,8 +505,7 @@ static void print_ast_internal(const struct ast_node *node, const int indent) {
                 default:           printf("unknown func");
             }
             break;
-        default:
-            printf("unknown node type");
+        default: break;
     }
     printf("\n");
 
