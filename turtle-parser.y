@@ -69,7 +69,7 @@ void yyerror(struct ast *ret, const char *);
 %right '^'
 %right UMINUS
 
-%type <node> unit cmds cmd block expr color
+%type <node> unit cmds cmd math_command block expr color
 
 %%
 
@@ -99,14 +99,17 @@ cmd:
   | KW_PROC NAME block         { $$ = make_cmd_proc(make_expr_name($2), $3); }
   | KW_CALL NAME               { $$ = make_cmd_call(make_expr_name($2)); }
 
+  | math_command
 
-  | KW_SIN '(' expr ')'       { $$ = make_func_sin($3); }
+  | block
+;
+
+math_command:
+    KW_SIN '(' expr ')'       { $$ = make_func_sin($3); }
   | KW_COS '(' expr ')'       { $$ = make_func_cos($3); }
   | KW_TAN '(' expr ')'       { $$ = make_func_tan($3); }
   | KW_SQRT '(' expr ')'      { $$ = make_func_sqrt($3); }
   | KW_RANDOM '(' expr ',' expr ')' { $$ = make_func_random($3, $5); }
-
-  | block
 ;
 
 block:
@@ -123,6 +126,7 @@ expr:
   | '(' expr ')'           { $$ = $2; }
   | NAME                   { $$ = make_expr_name($1); }
   | VALUE                  { $$ = make_expr_value($1); }
+  | math_command
 ;
 
 color:
