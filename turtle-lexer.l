@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
+
 #include "turtle-ast.h"
 #include "turtle-parser.h"
 %}
@@ -14,9 +16,9 @@ LETTER [a-zA-Z]
 ID     {LETTER}({LETTER}|{DIGIT})*
 
 %%
-{DIGIT}+"."{DIGIT}*([eE][+-]?{DIGIT}+)?     { yylval.value = strtod(yytext, NULL); return VALUE; }
-"."{DIGIT}+([eE][+-]?{DIGIT}+)?             { yylval.value = strtod(yytext, NULL); return VALUE; }
-{DIGIT}+([eE][+-]?{DIGIT}+)?                { yylval.value = strtod(yytext, NULL); return VALUE; }
+{DIGIT}+"."{DIGIT}*([eE][+-]?{DIGIT}+)?     { yylval.value = strtod(yytext, NULL); if(errno == ERANGE) { exit(EXIT_FAILURE); } return VALUE; }
+"."{DIGIT}+([eE][+-]?{DIGIT}+)?             { yylval.value = strtod(yytext, NULL); if(errno == ERANGE) { exit(EXIT_FAILURE); } return VALUE; }
+{DIGIT}+([eE][+-]?{DIGIT}+)?                { yylval.value = strtod(yytext, NULL); if(errno == ERANGE) { exit(EXIT_FAILURE); } return VALUE; }
 
 
 "forward"           { return KW_FORWARD; }
