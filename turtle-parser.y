@@ -92,12 +92,12 @@ cmd:
   | KW_RIGHT expr              { $$ = make_cmd_right($2); }
   | KW_HEADING expr            { $$ = make_cmd_heading($2); }
   | KW_POSITION expr ',' expr  { $$ = make_cmd_position($2, $4); }
-  | KW_COLOR color             { $$ = make_cmd_color($2); }
   | KW_PRINT expr              { $$ = make_cmd_print($2); }
   | KW_SET NAME expr           { $$ = make_cmd_set(make_expr_name($2), $3); }
   | KW_REPEAT expr block       { $$ = make_cmd_repeat($2, $3); }
   | KW_PROC NAME block         { $$ = make_cmd_proc(make_expr_name($2), $3); }
   | KW_CALL NAME               { $$ = make_cmd_call(make_expr_name($2)); }
+  | color
 
   | math_command
 
@@ -130,16 +130,16 @@ expr:
 ;
 
 color:
-    expr ',' expr ',' expr  { $$ = make_color_expr($1, $3, $5); }
-  | KW_RED                  { $$ = make_color_keyword("red"); }
-  | KW_GREEN                { $$ = make_color_keyword("green"); }
-  | KW_BLUE                 { $$ = make_color_keyword("blue"); }
-  | KW_CYAN                 { $$ = make_color_keyword("cyan"); }
-  | KW_MAGENTA              { $$ = make_color_keyword("magenta"); }
-  | KW_YELLOW               { $$ = make_color_keyword("yellow"); }
-  | KW_BLACK                { $$ = make_color_keyword("black"); }
-  | KW_GRAY                 { $$ = make_color_keyword("gray"); }
-  | KW_WHITE                { $$ = make_color_keyword("white"); }
+    KW_COLOR expr ',' expr ',' expr  { $$ = make_color_expr($2, $4, $6); }
+  | KW_COLOR KW_RED                  { $$ = make_color_keyword("red"); }
+  | KW_COLOR KW_GREEN                { $$ = make_color_keyword("green"); }
+  | KW_COLOR KW_BLUE                 { $$ = make_color_keyword("blue"); }
+  | KW_COLOR KW_CYAN                 { $$ = make_color_keyword("cyan"); }
+  | KW_COLOR KW_MAGENTA              { $$ = make_color_keyword("magenta"); }
+  | KW_COLOR KW_YELLOW               { $$ = make_color_keyword("yellow"); }
+  | KW_COLOR KW_BLACK                { $$ = make_color_keyword("black"); }
+  | KW_COLOR KW_GRAY                 { $$ = make_color_keyword("gray"); }
+  | KW_COLOR KW_WHITE                { $$ = make_color_keyword("white"); }
 ;
 
 %%
