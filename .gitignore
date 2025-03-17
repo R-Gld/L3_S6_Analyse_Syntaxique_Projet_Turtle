@@ -6,3 +6,4 @@ prepare_to_md
 *.turtle
 # Viewer folder containing the viewer executable.
 viewer/
+examples/
