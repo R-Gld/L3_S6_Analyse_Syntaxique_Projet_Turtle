@@ -71,24 +71,25 @@ struct ast_node *make_expr_value(double value);
 struct ast_node *make_expr_name(char *name);
 struct ast_node *make_expr_binop(char op, struct ast_node *left, struct ast_node *right);
 struct ast_node *make_expr_unop(char op, struct ast_node *expr);
-struct ast_node *make_cmd_forward(struct ast_node *expr);
-struct ast_node *make_cmd_backward(struct ast_node *expr);
 struct ast_node *make_func_cos(struct ast_node *arg);
 struct ast_node *make_func_sin(struct ast_node *arg);
 struct ast_node *make_func_tan(struct ast_node *arg);
 struct ast_node *make_func_sqrt(struct ast_node *arg);
 struct ast_node *make_func_random(struct ast_node *min, struct ast_node *max);
+struct ast_node *make_cmd_forward(struct ast_node *expr);
+struct ast_node *make_cmd_backward(struct ast_node *expr);
 struct ast_node *make_cmd_left(struct ast_node *expr);
 struct ast_node *make_cmd_right(struct ast_node *expr);
 struct ast_node *make_cmd_heading(struct ast_node *expr);
 struct ast_node *make_cmd_position(struct ast_node *x, struct ast_node *y);
-struct ast_node *make_cmd_color(struct ast_node *expr);
 struct ast_node *make_cmd_print(struct ast_node *expr);
 struct ast_node *make_cmd_block(struct ast_node *expr);
 struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr);
 struct ast_node *make_cmd_repeat(struct ast_node *how_many, struct ast_node *block);
 struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block);
 struct ast_node *make_cmd_call(struct ast_node *name);
+
+struct ast_node *make_cmd_color(struct ast_node *expr);
 struct ast_node *make_color_expr(struct ast_node *r, struct ast_node *g, struct ast_node *b);
 struct ast_node *make_color_keyword(const char *keyword);
 
@@ -97,33 +98,42 @@ struct ast {
   struct ast_node *unit;
 };
 
-struct node_stack {
-  struct ast_node **stack;
-  size_t size;
+/**
+ * Can be used as a stack by using node_list_push and pop with list.list[--list.size];
+ */
+struct node_list { // 8 + 8 + 8 = 24 bytes
+  struct ast_node **list;
   size_t capacity;
+  size_t size;
 };
-void node_stack_push(struct node_stack *self, struct ast_node *node);
+void node_list_push(struct node_list *self, struct ast_node *node);
+void node_list_init(struct node_list *list);
+
+void add_variable(const struct ast_node *var, struct node_list *self);
+
 // do not forget to destroy properly! no leaks allowed!
 void ast_destroy(const struct ast *self);
 
-// the execution context
 struct context {
   double x;
   double y;
   double angle;
   bool up;
+  double color[3];
 
-  // TODO: add procedure handling
-  // TODO: add variable handling
+  struct node_list variables;
+  struct node_list procedures;
 };
 
 // create an initial context
 void context_create(struct context *self);
 
+void context_destroy(const struct context *self);
+
 // print the tree as if it was a Turtle program
 void ast_print(const struct ast *self);
 
-static void print_ast_internal(const struct ast_node *node, const int indent);
+static void print_ast_internal(const struct ast_node *node, int indent);
 // evaluate the tree and generate some basic primitives
 void ast_eval(const struct ast *self, struct context *ctx);
 

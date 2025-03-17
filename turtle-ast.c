@@ -212,16 +212,7 @@ struct ast_node *make_cmd_position(struct ast_node *x, struct ast_node *y) {
     node->next = NULL;
     return node;
 }
-struct ast_node *make_cmd_color(struct ast_node *expr) {
-    struct ast_node *node = malloc(sizeof(struct ast_node));
-    node->kind = KIND_CMD_SIMPLE;
-    node->u.cmd = CMD_COLOR;
-    node->children_count = 1;
-    node->children[0] = expr;
 
-    node->next = NULL;
-    return node;
-}
 struct ast_node *make_cmd_print(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_SIMPLE;
@@ -243,13 +234,14 @@ struct ast_node *make_cmd_block(struct ast_node *expr) {
     node->next = NULL;
     return node;
 }
+
 struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_SET;
     node->u.name = strdup(name->u.name);
     node->children_count = 2;
-    node->children[1] = name;
-    node->children[0] = expr;
+    node->children[0] = name;
+    node->children[1] = expr;
 
     node->next = NULL;
     return node;
@@ -277,6 +269,7 @@ struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block) {
     node->next = NULL;
     return node;
 }
+
 struct ast_node *make_cmd_call(struct ast_node *name) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_CALL;
@@ -287,6 +280,18 @@ struct ast_node *make_cmd_call(struct ast_node *name) {
     node->next = NULL;
     return node;
 }
+
+struct ast_node *make_cmd_color(struct ast_node *expr) {
+    struct ast_node *node = malloc(sizeof(struct ast_node));
+    node->kind = KIND_CMD_SIMPLE;
+    node->u.cmd = CMD_COLOR;
+    node->children_count = 1;
+    node->children[0] = expr;
+
+    node->next = NULL;
+    return node;
+}
+
 struct ast_node *make_color_expr(struct ast_node *r, struct ast_node *g, struct ast_node *b) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
     node->kind = KIND_CMD_SIMPLE;
@@ -360,17 +365,17 @@ struct ast_node *make_color_keyword(const char *keyword) {
 }
 
 
-void node_stack_push(struct node_stack *self, struct ast_node *node) {
+void node_list_push(struct node_list *self, struct ast_node *node) {
     if(self->size >= self->capacity) {
         self->capacity *= 2;
-        struct ast_node **new_stack = realloc(self->stack, self->capacity * sizeof(struct ast_node *));
+        struct ast_node **new_stack = realloc(self->list, self->capacity * sizeof(struct ast_node *));
         if(!new_stack) {
             perror("realloc (3)");
             exit(EXIT_FAILURE);
         }
-        self->stack = new_stack;
+        self->list = new_stack;
     }
-    self->stack[self->size++] = node;
+    self->list[self->size++] = node;
 }
 
 /**
@@ -383,22 +388,20 @@ void node_stack_push(struct node_stack *self, struct ast_node *node) {
  * @param self the AST to destroy
  */
 void ast_destroy(const struct ast *self) {
-    struct node_stack stack;
-    stack.capacity = 8;
-    stack.size = 0;
-    stack.stack = calloc(stack.capacity, sizeof(struct ast_node *));
+    struct node_list stack;
+    node_list_init(&stack);
 
-    node_stack_push(&stack, self->unit);
+    node_list_push(&stack, self->unit);
 
     while (stack.size > 0) {
-        struct ast_node *current_node = stack.stack[--stack.size]; // pop
+        struct ast_node *current_node = stack.list[--stack.size]; // pop
         if (current_node->next != NULL) {
-            node_stack_push(&stack, current_node->next);
+            node_list_push(&stack, current_node->next);
         }
         for (int i = 0; i < current_node->children_count; ++i) {
             struct ast_node *child = current_node->children[i];
             if (child != NULL) {
-                node_stack_push(&stack, child);
+                node_list_push(&stack, child);
             }
         }
 
@@ -414,7 +417,7 @@ void ast_destroy(const struct ast *self) {
         free(current_node);
     }
 
-    free(stack.stack);
+    free(stack.list);
 }
 
 /*
@@ -426,6 +429,53 @@ void context_create(struct context *self) {
     self->y = 0.0;
     self->up = false;
     self->angle = 0.0; // set default angle to 0 degrees toward north.
+    // Set the default color to black
+    self->color[0] = 0;
+    self->color[1] = 0;
+    self->color[2] = 0;
+    node_list_init(&self->procedures);
+    node_list_init(&self->variables);
+}
+
+void context_destroy(const struct context *self) {
+    free(self->procedures.list);
+    free(self->variables.list);
+}
+
+void node_list_init(struct node_list *list) {
+    list->capacity = 16;
+    list->size = 0;
+    list->list = calloc(list->capacity, sizeof(struct ast_node *));
+    if (list->list == NULL) {
+        perror("calloc on node_list_init");
+        exit(EXIT_FAILURE);
+    }
+}
+
+/**
+ *
+ * @param name the name of the variable to add
+ * @param ctx the context to add the variable to
+ * @return the ast_node corresponding to the variable if it exists, NULL otherwise
+ */
+struct ast_node *get_variable(const struct ast_node* name, const struct context *ctx) {
+    const struct node_list *vars = &ctx->variables;
+    for (int i = 0; i < vars->size; ++i) {
+        if (strcmp(name->u.name, vars->list[i]->u.name) == 0) {
+            return vars->list[i]->children[1]; // expr is stored at index 1.
+        }
+    }
+    return NULL;
+}
+
+struct ast_node *get_procedure(const struct ast_node* name, const struct context *ctx) {
+    const struct node_list *vars = &ctx->variables;
+    for (int i = 0; i < vars->size; ++i) {
+        if (strcmp(name->u.name, vars->list[i]->u.name) == 0) {
+            return vars->list[i]->children[1]; // block is stored at index 1.
+        }
+    }
+    return NULL;
 }
 
 /*
@@ -522,4 +572,3 @@ static void print_ast_internal(const struct ast_node *node, const int indent) {
 void ast_print(const struct ast *self) {
     print_ast_internal(self->unit, 0);
 }
-
