@@ -15,7 +15,6 @@ void yyerror(struct ast *ret, const char *);
 
 %parse-param { struct ast *ret }
 
-/* Les types que peuvent prendre */
 %union {
   double value;
   char *name;
@@ -25,7 +24,6 @@ void yyerror(struct ast *ret, const char *);
 %token <value>    VALUE       "value"
 %token <name>     NAME        "name"
 
-/* Movement */
 %token            KW_FORWARD  "forward"
 %token            KW_BACKWARD "backward"
 %token            KW_RIGHT    "right"
@@ -35,25 +33,21 @@ void yyerror(struct ast *ret, const char *);
 %token            KW_UP       "up"
 %token            KW_DOWN     "down"
 
-/* Others */
 %token            KW_COLOR    "color"
 %token            KW_HOME     "home"
 %token            KW_PRINT    "print"
 %token            KW_REPEAT   "repeat"
 %token            KW_SET      "set"
 
-/* functions */
 %token            KW_PROC     "proc"
 %token            KW_CALL     "call"
 
-/* Intern functions */
 %token            KW_SIN      "sin"
 %token            KW_COS      "cos"
 %token            KW_TAN      "tan"
 %token            KW_SQRT     "sqrt"
 %token            KW_RANDOM   "random"
 
-/* Colors */
 %token            KW_RED      "red"
 %token            KW_GREEN    "green"
 %token            KW_BLUE     "blue"
@@ -69,12 +63,14 @@ void yyerror(struct ast *ret, const char *);
 %right '^'
 %right UMINUS
 
-%type <node> unit cmds cmd math_command block expr color
+%type <node> unit cmds cmd internal_functions
+block expr color
 
 %%
 
 unit:
     cmds              { $$ = make_cmd_block($1); ret->unit = $$; }
+  | /* empty */       { $$ = make_cmd_block(NULL); ret->unit = $$; }
 ;
 
 cmds:
@@ -98,22 +94,20 @@ cmd:
   | KW_PROC NAME block         { $$ = make_cmd_proc(make_expr_name($2), $3); }
   | KW_CALL NAME               { $$ = make_cmd_call(make_expr_name($2)); }
   | color
-
-  | math_command
-
+  | internal_functions
   | block
 ;
 
-math_command:
-    KW_SIN '(' expr ')'       { $$ = make_func_sin($3); }
-  | KW_COS '(' expr ')'       { $$ = make_func_cos($3); }
-  | KW_TAN '(' expr ')'       { $$ = make_func_tan($3); }
-  | KW_SQRT '(' expr ')'      { $$ = make_func_sqrt($3); }
-  | KW_RANDOM '(' expr ',' expr ')' { $$ = make_func_random($3, $5); }
+internal_functions:
+    KW_SIN '(' expr ')'              { $$ = make_func_sin($3); }
+  | KW_COS '(' expr ')'              { $$ = make_func_cos($3); }
+  | KW_TAN '(' expr ')'              { $$ = make_func_tan($3); }
+  | KW_SQRT '(' expr ')'             { $$ = make_func_sqrt($3); }
+  | KW_RANDOM '(' expr ',' expr ')'  { $$ = make_func_random($3, $5); }
 ;
 
 block:
-    '{' cmds '}'            { $$ = make_cmd_block($2); }
+    '{' cmds '}'                   { $$ = make_cmd_block($2); }
 ;
 
 expr:
@@ -126,7 +120,7 @@ expr:
   | '(' expr ')'           { $$ = $2; }
   | NAME                   { $$ = make_expr_name($1); }
   | VALUE                  { $$ = make_expr_value($1); }
-  | math_command
+  | internal_functions
 ;
 
 color:

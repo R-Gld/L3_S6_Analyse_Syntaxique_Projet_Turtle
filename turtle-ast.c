@@ -1,6 +1,8 @@
 #include "turtle-ast.h"
 
 #include <assert.h>
+#include <errno.h>
+#include <fenv.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,8 +13,23 @@
 #define SQRT2 1.41421356237309504880
 #define SQRT3 1.7320508075688772935
 
+void check_malloc(const void *pointer) {
+    if (pointer == NULL) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void create_variable(char* name, const double value, struct context *ctx) {
+    struct ast_node *name_node = make_expr_name(name);
+    struct ast_node *value_node = make_expr_value(value);
+    node_list_push(&ctx->variables, make_cmd_set(name_node, value_node));
+}
+
+
 struct ast_node *make_cmd_up() {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
 
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_UP;
@@ -25,6 +42,7 @@ struct ast_node *make_cmd_up() {
 
 struct ast_node *make_cmd_down() {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
 
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_DOWN;
@@ -37,6 +55,7 @@ struct ast_node *make_cmd_down() {
 
 struct ast_node *make_cmd_home() {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
 
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_HOME;
@@ -49,6 +68,8 @@ struct ast_node *make_cmd_home() {
 
 struct ast_node *make_expr_value(const double value) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_VALUE;
     node->u.value = value;
     node->children_count = 0;
@@ -60,6 +81,8 @@ struct ast_node *make_expr_value(const double value) {
 
 struct ast_node *make_expr_name(char *name) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_NAME;
     node->u.name = name;
     node->children_count = 0;
@@ -71,6 +94,8 @@ struct ast_node *make_expr_name(char *name) {
 
 struct ast_node *make_expr_binop(const char op, struct ast_node *left, struct ast_node *right) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_BINOP;
     node->u.op = op;
     node->children_count = 2;
@@ -83,6 +108,8 @@ struct ast_node *make_expr_binop(const char op, struct ast_node *left, struct as
 
 struct ast_node *make_expr_unop(const char op, struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_UNOP;
     node->u.op = op;
     node->children_count = 1;
@@ -94,6 +121,8 @@ struct ast_node *make_expr_unop(const char op, struct ast_node *expr) {
 
 struct ast_node *make_cmd_forward(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_FORWARD;
     node->children_count = 1;
@@ -105,6 +134,8 @@ struct ast_node *make_cmd_forward(struct ast_node *expr) {
 
 struct ast_node *make_cmd_backward(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_BACKWARD;
     node->children_count = 1;
@@ -117,6 +148,8 @@ struct ast_node *make_cmd_backward(struct ast_node *expr) {
 
 struct ast_node *make_func_cos(struct ast_node *arg) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_FUNC;
     node->u.func = FUNC_COS;
     node->children_count = 1;
@@ -128,6 +161,8 @@ struct ast_node *make_func_cos(struct ast_node *arg) {
 
 struct ast_node *make_func_sin(struct ast_node *arg) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_FUNC;
     node->u.func = FUNC_SIN;
     node->children_count = 1;
@@ -139,6 +174,8 @@ struct ast_node *make_func_sin(struct ast_node *arg) {
 
 struct ast_node *make_func_tan(struct ast_node *arg) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_FUNC;
     node->u.func = FUNC_TAN;
     node->children_count = 1;
@@ -150,6 +187,8 @@ struct ast_node *make_func_tan(struct ast_node *arg) {
 
 struct ast_node *make_func_sqrt(struct ast_node *arg) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_FUNC;
     node->u.func = FUNC_SQRT;
     node->children_count = 1;
@@ -161,6 +200,8 @@ struct ast_node *make_func_sqrt(struct ast_node *arg) {
 
 struct ast_node *make_func_random(struct ast_node *min, struct ast_node *max) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_EXPR_FUNC;
     node->u.func = FUNC_RANDOM;
     node->children_count = 2;
@@ -173,6 +214,8 @@ struct ast_node *make_func_random(struct ast_node *min, struct ast_node *max) {
 
 struct ast_node *make_cmd_left(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_LEFT;
     node->children_count = 1;
@@ -183,6 +226,8 @@ struct ast_node *make_cmd_left(struct ast_node *expr) {
 }
 struct ast_node *make_cmd_right(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_RIGHT;
     node->children_count = 1;
@@ -193,6 +238,8 @@ struct ast_node *make_cmd_right(struct ast_node *expr) {
 }
 struct ast_node *make_cmd_heading(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_HEADING;
     node->children_count = 1;
@@ -203,6 +250,8 @@ struct ast_node *make_cmd_heading(struct ast_node *expr) {
 }
 struct ast_node *make_cmd_position(struct ast_node *x, struct ast_node *y) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_POSITION;
     node->children_count = 2;
@@ -215,6 +264,8 @@ struct ast_node *make_cmd_position(struct ast_node *x, struct ast_node *y) {
 
 struct ast_node *make_cmd_print(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_PRINT;
     node->children_count = 1;
@@ -226,6 +277,8 @@ struct ast_node *make_cmd_print(struct ast_node *expr) {
 
 struct ast_node *make_cmd_block(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
 
     node->kind = KIND_CMD_BLOCK;
     node->children_count = 1;
@@ -237,6 +290,8 @@ struct ast_node *make_cmd_block(struct ast_node *expr) {
 
 struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SET;
     node->u.name = strdup(name->u.name);
     node->children_count = 2;
@@ -249,6 +304,8 @@ struct ast_node *make_cmd_set(struct ast_node *name, struct ast_node *expr) {
 
 struct ast_node *make_cmd_repeat(struct ast_node *how_many, struct ast_node *block) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_REPEAT;
     node->children_count = 2;
     node->children[0] = how_many;
@@ -260,6 +317,8 @@ struct ast_node *make_cmd_repeat(struct ast_node *how_many, struct ast_node *blo
 
 struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_PROC;
     node->u.name = strdup(name->u.name);
     node->children_count = 2;
@@ -272,6 +331,8 @@ struct ast_node *make_cmd_proc(struct ast_node *name, struct ast_node *block) {
 
 struct ast_node *make_cmd_call(struct ast_node *name) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_CALL;
     node->u.name = strdup(name->u.name);
     node->children_count = 1;
@@ -283,6 +344,8 @@ struct ast_node *make_cmd_call(struct ast_node *name) {
 
 struct ast_node *make_cmd_color(struct ast_node *expr) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_COLOR;
     node->children_count = 1;
@@ -294,6 +357,8 @@ struct ast_node *make_cmd_color(struct ast_node *expr) {
 
 struct ast_node *make_color_expr(struct ast_node *r, struct ast_node *g, struct ast_node *b) {
     struct ast_node *node = malloc(sizeof(struct ast_node));
+    check_malloc(node);
+
     node->kind = KIND_CMD_SIMPLE;
     node->u.cmd = CMD_COLOR;
     node->children_count = 3;
@@ -307,35 +372,35 @@ struct ast_node *make_color_expr(struct ast_node *r, struct ast_node *g, struct 
 struct ast_node *make_color_keyword(const char *keyword) {
     double r, g, b;
     if (strcmp(keyword, "white") == 0) {
-        r = g = b = 255.0;
+        r = g = b = 1.0;
     } else if (strcmp(keyword, "gray") == 0) {
-        r = g = b = 128.0;
+        r = g = b = 0.5;
     } else if (strcmp(keyword, "red") == 0) {
-        r = 255.0;
+        r = 1.0;
         g = 0.0;
         b = 0.0;
     } else if (strcmp(keyword, "green") == 0) {
         r = 0.0;
-        g = 255.0;
+        g = 1.0;
         b = 0.0;
     } else if (strcmp(keyword, "blue") == 0) {
         r = 0.0;
         g = 0.0;
-        b = 255.0;
+        b = 1.0;
     } else if (strcmp(keyword, "yellow") == 0) {
-        r = 255.0;
-        g = 255.0;
+        r = 1.0;
+        g = 1.0;
         b = 0.0;
     } else if (strcmp(keyword, "cyan") == 0) {
         r = 0.0;
-        g = 255.0;
-        b = 255.0;
+        g = 1.0;
+        b = 1.0;
     } else if (strcmp(keyword, "magenta") == 0) {
-        r = 255.0;
+        r = 1.0;
         g = 0.0;
-        b = 255.0;
+        b = 1.0;
     } else {
-        // Black case, at this point we cannot have another keyword than 'black' because the keyword are hard-coded in the lexer.
+        // ici keyword est forcément = "black" parce que ya pas d'autres KW_ de définis dans le .l
         r = g = b = 0.0;
     }
     struct ast_node *red_node = malloc(sizeof(struct ast_node));
@@ -398,7 +463,7 @@ void ast_destroy(const struct ast *self) {
         if (current_node->next != NULL) {
             node_list_push(&stack, current_node->next);
         }
-        for (int i = 0; i < current_node->children_count; ++i) {
+        for (size_t i = 0; i < current_node->children_count; ++i) {
             struct ast_node *child = current_node->children[i];
             if (child != NULL) {
                 node_list_push(&stack, child);
@@ -423,7 +488,6 @@ void ast_destroy(const struct ast *self) {
 /*
  * context
  */
-
 void context_create(struct context *self) {
     self->x = 0.0;
     self->y = 0.0;
@@ -435,10 +499,25 @@ void context_create(struct context *self) {
     self->color[2] = 0;
     node_list_init(&self->procedures);
     node_list_init(&self->variables);
+
+    create_variable("PI", PI, self);
+    // create_variable("SQRT2", SQRT2, self);
+    // create_variable("SQRT3", SQRT3, self);
 }
 
 void context_destroy(const struct context *self) {
     free(self->procedures.list);
+
+    for (size_t i = 0; i < self->variables.size; ++i) {
+        struct ast_node *set_node = self->variables.list[i];
+
+        free(set_node->children[0]);
+        free(set_node->children[1]);
+
+        free(set_node->u.name);
+        free(set_node);
+    }
+
     free(self->variables.list);
 }
 
@@ -460,7 +539,7 @@ void node_list_init(struct node_list *list) {
  */
 struct ast_node *get_variable(const struct ast_node* name, const struct context *ctx) {
     const struct node_list *vars = &ctx->variables;
-    for (int i = 0; i < vars->size; ++i) {
+    for (size_t i = 0; i < vars->size; ++i) {
         if (strcmp(name->u.name, vars->list[i]->u.name) == 0) {
             return vars->list[i]->children[1]; // expr is stored at index 1.
         }
@@ -469,10 +548,10 @@ struct ast_node *get_variable(const struct ast_node* name, const struct context 
 }
 
 struct ast_node *get_procedure(const struct ast_node* name, const struct context *ctx) {
-    const struct node_list *vars = &ctx->variables;
-    for (int i = 0; i < vars->size; ++i) {
-        if (strcmp(name->u.name, vars->list[i]->u.name) == 0) {
-            return vars->list[i]->children[1]; // block is stored at index 1.
+    const struct node_list *procs = &ctx->procedures;
+    for (size_t i = 0; i < procs->size; ++i) {
+        if (strcmp(name->u.name, procs->list[i]->u.name) == 0) {
+            return procs->list[i]->children[1]; // block is stored at index 1.
         }
     }
     return NULL;
@@ -482,7 +561,327 @@ struct ast_node *get_procedure(const struct ast_node* name, const struct context
  * eval
  */
 void ast_eval(const struct ast *self, struct context *ctx) {
+    eval_cmd(self->unit, ctx);
+}
 
+void move_to(struct context *ctx, const double x, double y) {
+    if (ctx->up) {
+        printf("MoveTo %f %f\n", x, y);
+    } else {
+        printf("LineTo %f %f\n", x, y);
+    }
+    if (x < -500 || x > 500 || y < -500 || y > 500) {
+        fprintf(stderr, "Warning, the coordinates (%f, %f) are out of bounds.\n", x, y);
+    }
+    ctx->x = x;
+    ctx->y = y;
+}
+
+/**
+ *
+ * @param node the AST node to evaluate Should have a kind of KIND_EXPR_*
+ * @param ctx the context to use for the evaluation
+ * @return the value of the expression / the content of the variable.
+ */
+double eval_expr(const struct ast_node *node, struct context *ctx) {
+    switch (node->kind) {
+        case KIND_EXPR_VALUE:
+            return node->u.value;
+        case KIND_EXPR_NAME: {
+            struct ast_node *var_expr = get_variable(node, ctx);
+            if (var_expr == NULL) {
+                fprintf(stderr, "Error, the variable '%s' is not defined\n", node->u.name);
+                exit(EXIT_FAILURE);
+            }
+            return eval_expr(var_expr, ctx);
+        }
+        case KIND_EXPR_BINOP: {
+            const double left = eval_expr(node->children[0], ctx);
+            const double right = eval_expr(node->children[1], ctx);
+            switch (node->u.op) {
+                case '+': return left + right;
+                case '-': return left - right;
+                case '*': return left * right;
+                case '/':
+                    if (right == 0) {
+                        fprintf(stderr, "Error, dividing by zero.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    return left / right;
+                case '^': {
+                    // via pow(3), modf(3), math_error(7), fetextexcept(3)
+                    double blc;
+                    if (left < 0
+                        && modf(right, &blc) != 0.0)    { fprintf(stderr, "Error, the base (%f) is negative, the exponent (%f) must be an integer.\n", left, right); exit(EXIT_FAILURE); }
+                    if (left == 0.0 && right <= 0.0)    { fprintf(stderr, "Error, for a base set to 0, the exponent must be > 0 (%f).\n", right); exit(EXIT_FAILURE); }
+
+                    // clear errors.
+                    feclearexcept(FE_ALL_EXCEPT);
+                    errno = 0;
+                    const double value = pow(left, right);
+                    if (errno != 0) {
+                        if (fetestexcept(FE_DIVBYZERO))     { fprintf(stderr, "Error: Division by zero occurred in pow() (base: %f; exponent: %f).\n", left, right); exit(EXIT_FAILURE); }
+                        if (fetestexcept(FE_INVALID))       { fprintf(stderr, "Error: Invalid operation occurred in pow() (base: %f; exponent: %f).\n", left, right); exit(EXIT_FAILURE); }
+                        if (fetestexcept(FE_OVERFLOW))      { fprintf(stderr, "Error: Overflow occurred in pow() (base: %f; exponent: %f).\n", left, right); exit(EXIT_FAILURE); }
+                        if (fetestexcept(FE_UNDERFLOW))     { fprintf(stderr, "Error: Underflow occurred in pow() (base: %f; exponent: %f).\n", left, right); exit(EXIT_FAILURE); }
+                    }
+                    return value;
+                }
+                default:
+                    fprintf(stderr, "Error, binary operator '%c' not supported\n", node->u.op);
+                    exit(EXIT_FAILURE);
+            }
+        }
+        case KIND_EXPR_UNOP: {
+            const double val = eval_expr(node->children[0], ctx);
+            switch (node->u.op) {
+                case '-': return -val;
+                default:
+                    fprintf(stderr, "Error, unary operator '%c' not supported\n", node->u.op);
+                    exit(EXIT_FAILURE);
+            }
+        }
+        case KIND_EXPR_FUNC: {
+            switch (node->u.func) {
+                case FUNC_SIN: {
+                    const double angle = eval_expr(node->children[0], ctx);
+
+                    // clear errors.
+                    feclearexcept(FE_ALL_EXCEPT);
+                    errno = 0;
+
+                    const double value = sin(deg_to_rad(angle)); // sin take radians in parameter, not degrees. Cf man 3 sin
+                    if (errno != 0 && fetestexcept(FE_INVALID)) {
+                        fprintf(stderr, "Error, x is an infinity, implies a domain error (value in degrees: %f).\n", angle); exit(EXIT_FAILURE);
+                   }
+                    return value;
+                }
+                case FUNC_COS: {
+                    const double angle = eval_expr(node->children[0], ctx);
+
+                    // clear errors.
+                    feclearexcept(FE_ALL_EXCEPT);
+                    errno = 0;
+
+                    const double value = cos(deg_to_rad(angle)); // sin take radians in parameter, not degrees. Cf man 3 sin
+                    if (errno != 0 && fetestexcept(FE_INVALID)) {
+                        fprintf(stderr, "Error, x is an infinity, implies a domain error (value in degrees: %f).\n", angle); exit(EXIT_FAILURE);
+                    }
+                    return value;
+                }
+                case FUNC_TAN: {
+                    const double angle = eval_expr(node->children[0], ctx);
+
+                    // clear errors.
+                    feclearexcept(FE_ALL_EXCEPT);
+                    errno = 0;
+
+                    const double value = tan(deg_to_rad(angle)); // sin take radians in parameter, not degrees. Cf man 3 sin
+                    if (errno != 0) {
+                        if (fetestexcept(FE_INVALID))  { fprintf(stderr, "Error, %f is an infinity, implies a domain error.\n", angle); exit(EXIT_FAILURE); }
+                        if (fetestexcept(FE_OVERFLOW)) { fprintf(stderr, "Error, %f is too big, creating an overflow.", angle); exit(EXIT_FAILURE); }
+                    }
+                    return value;
+                }
+                case FUNC_SQRT: {
+                    // man sqrt(3)
+                    const double val = eval_expr(node->children[0], ctx);
+                    if (val < 0) {
+                        fprintf(stderr, "Error, the sqrt of '%f' is not defined.\n", val);
+                        exit(EXIT_FAILURE);
+                    }
+                    return sqrt(val);
+                }
+                case FUNC_RANDOM: {
+                    const double min = eval_expr(node->children[0], ctx);
+                    const double max = eval_expr(node->children[1], ctx);
+                    if (min > max) { // on aurait pu swap les deux valeurs mais il faut print une erreur :/
+                        fprintf(stderr, "Error, the two values of the random function are inverted (%f > %f).\n", min, max);
+                        exit(EXIT_FAILURE);
+                    }
+                    const double range = max - min;
+                    const double rnd = (double) rand() / RAND_MAX;
+                    return min + rnd * range;
+                }
+                default:
+                    fprintf(stderr, "Internal function unknown.\n");
+                    exit(EXIT_FAILURE);
+            }
+        }
+        default:
+            fprintf(stderr, "expr type invalid.\n");
+            exit(EXIT_FAILURE);
+    }
+}
+
+void check_procedure_recurs(const struct ast_node *node, const bool in_proc) {
+    if (node == NULL) return;
+
+    if (node->kind == KIND_CMD_PROC) {
+        if (in_proc) {
+            fprintf(stderr, "Error, you can't define a procedure inside of another procedure (%s).\n", node->u.name);
+            exit(EXIT_FAILURE);
+        }
+        check_procedure_recurs(node->children[1], true);
+    } else {
+        for (size_t i = 0; i < node->children_count; ++i) {
+            check_procedure_recurs(node->children[i], in_proc);
+        }
+    }
+    check_procedure_recurs(node->next, in_proc);
+}
+
+
+/**
+ *
+ * @param node the node to evaluate
+ * @param ctx the context to use for the evaluation
+ */
+void eval_cmd(struct ast_node *node, struct context *ctx) {
+
+    while (node) {
+        switch (node->kind) {
+            case KIND_CMD_SIMPLE:
+
+                switch (node->u.cmd) {
+                    case CMD_UP:
+
+                        ctx->up = true;
+                        break;
+                    case CMD_DOWN:
+
+                        ctx->up = false;
+                        break;
+                    case CMD_HOME:
+
+                        move_to(ctx, 0, 0);
+                        ctx->angle = 0;
+                        break;
+                    case CMD_FORWARD: {
+
+                        const double distance = eval_expr(node->children[0], ctx);
+                        const double angle_rad = deg_to_rad(ctx->angle);
+                        const double new_x = ctx->x + distance * sin(angle_rad);
+                        const double new_y = ctx->y - distance * cos(angle_rad);
+                        move_to(ctx, new_x, new_y);
+                        break;
+                    }
+                    case CMD_BACKWARD: {
+
+                        const double distance = eval_expr(node->children[0], ctx);
+                        const double angle_rad = deg_to_rad(ctx->angle);
+                        const double new_x = ctx->x - distance * sin(angle_rad);
+                        const double new_y = ctx->y + distance * cos(angle_rad);
+                        move_to(ctx, new_x, new_y);
+                        break;
+                    }
+                    case CMD_LEFT: {
+
+                        const double angle = eval_expr(node->children[0], ctx);
+                        ctx->angle -= angle;
+                        break;
+                    }
+                    case CMD_RIGHT: {
+
+                        const double angle = eval_expr(node->children[0], ctx);
+                        ctx->angle += angle;
+                        break;
+                    }
+                    case CMD_HEADING: {
+
+                        const double angle = eval_expr(node->children[0], ctx);
+                        ctx->angle = angle;
+                        break;
+                    }
+                    case CMD_POSITION: {
+
+                        const bool tmp_up = ctx->up;
+                        ctx->up = true;
+                        const double new_x = eval_expr(node->children[0], ctx);
+                        const double new_y = eval_expr(node->children[1], ctx);
+                        move_to(ctx, new_x, new_y);
+                        ctx->up = tmp_up;
+                        break;
+                    }
+                    case CMD_COLOR: {
+                        const double r = eval_expr(node->children[0], ctx);
+                        const double g = eval_expr(node->children[1], ctx);
+                        const double b = eval_expr(node->children[2], ctx);
+                        ctx->color[0] = r;
+                        ctx->color[1] = g;
+                        ctx->color[2] = b;
+                        printf("Color %f %f %f\n", r, g, b);
+                        break;
+                    }
+                    case CMD_PRINT: {
+                        const double val = eval_expr(node->children[0], ctx);
+                        fprintf(stderr, "print => %f\n", val);
+                        break;
+                    }
+                    default:
+                        fprintf(stderr, "Error, simple command unknown.\n");
+                        exit(EXIT_FAILURE);
+                }
+                break;
+            case KIND_CMD_REPEAT: {
+                const int count = (int) floor(eval_expr(node->children[0], ctx));
+                for (int i = 0; i < count; ++i) {
+                    eval_cmd(node->children[1], ctx);
+                }
+                break;
+            }
+            case KIND_CMD_BLOCK:
+
+                eval_cmd(node->children[0], ctx);
+                break;
+            case KIND_CMD_SET: {
+
+                const double value = eval_expr(node->children[1], ctx);
+                struct ast_node *value_fig = make_expr_value(value);
+                // Ici, on fige la valeur de value à l'instant t en l'évaluant et arès on recréer un cmd_set dans la node_list.
+                struct ast_node *var = get_variable(node->children[0], ctx);
+                if (var == NULL) {
+                    node_list_push(&ctx->variables, make_cmd_set(node->children[0], value_fig));
+                } else {
+                    // Ici, on met à jour la valeur dans la variable.
+                    var->children[1] = value_fig;
+                }
+                break;
+            }
+            case KIND_CMD_PROC: {
+
+                if (get_procedure(node->children[0], ctx) == NULL) {
+                    node_list_push(&ctx->procedures, node);
+                } else {
+                    fprintf(stderr, "Error, procedure '%s' already defined.\n", node->children[0]->u.name);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+            case KIND_CMD_CALL: {
+
+                struct ast_node *proc = get_procedure(node->children[0], ctx);
+                if (proc == NULL) {
+                    fprintf(stderr, "Error, the procedure '%s' is not defined.\n", node->children[0]->u.name);
+                    exit(EXIT_FAILURE);
+                }
+                eval_cmd(proc, ctx);
+                break;
+            }
+            case KIND_EXPR_VALUE:
+            case KIND_EXPR_NAME:
+            case KIND_EXPR_BINOP:
+            case KIND_EXPR_BLOCK:
+            case KIND_EXPR_FUNC:
+            case KIND_EXPR_UNOP:
+                eval_expr(node, ctx);
+                break;
+            default:
+                fprintf(stderr, "Error, command type unknown\n");
+                exit(EXIT_FAILURE);
+        }
+        node = node->next;
+    }
 }
 
 /**
@@ -490,74 +889,74 @@ void ast_eval(const struct ast *self, struct context *ctx) {
  * @param node the AST node to print
  * @param indent the indentation level
  */
-static void print_ast_internal(const struct ast_node *node, const int indent) {
+void print_ast_internal(const struct ast_node *node, const int indent) {
     if (!node) return;
 
     // Imprimer l'indentation
     for (int i = 0; i < indent; i++) {
-        printf("  ");
+        fprintf(stderr, "  ");
     }
 
     // Afficher le type et le contenu du nœud
     switch (node->kind) {
         case KIND_CMD_SIMPLE:
-            printf("CMD: ");
+            fprintf(stderr, "CMD: ");
             switch (node->u.cmd) {
-                case CMD_UP:       printf("up"); break;
-                case CMD_DOWN:     printf("down"); break;
-                case CMD_HOME:     printf("home"); break;
-                case CMD_FORWARD:  printf("forward"); break;
-                case CMD_BACKWARD: printf("backward"); break;
-                case CMD_LEFT:     printf("left"); break;
-                case CMD_RIGHT:    printf("right"); break;
-                case CMD_HEADING:  printf("heading"); break;
-                case CMD_POSITION: printf("position"); break;
-                case CMD_COLOR:    printf("color"); break;
-                case CMD_PRINT:    printf("print"); break;
-                default:           printf("unknown cmd");
+                case CMD_UP:       fprintf(stderr, "up"); break;
+                case CMD_DOWN:     fprintf(stderr, "down"); break;
+                case CMD_HOME:     fprintf(stderr, "home"); break;
+                case CMD_FORWARD:  fprintf(stderr, "forward"); break;
+                case CMD_BACKWARD: fprintf(stderr, "backward"); break;
+                case CMD_LEFT:     fprintf(stderr, "left"); break;
+                case CMD_RIGHT:    fprintf(stderr, "right"); break;
+                case CMD_HEADING:  fprintf(stderr, "heading"); break;
+                case CMD_POSITION: fprintf(stderr, "position"); break;
+                case CMD_COLOR:    fprintf(stderr, "color"); break;
+                case CMD_PRINT:    fprintf(stderr, "print"); break;
+                default:           fprintf(stderr, "unknown cmd");
             }
             break;
         case KIND_CMD_REPEAT:
-            printf("repeat:");
+            fprintf(stderr, "repeat:");
             break;
         case KIND_CMD_BLOCK:
-            printf("block:");
+            fprintf(stderr, "block:");
             break;
         case KIND_CMD_PROC:
-            printf("proc: %s", node->u.name);
+            fprintf(stderr, "proc: %s", node->u.name);
             break;
         case KIND_CMD_CALL:
-            printf("call: %s", node->u.name);
+            fprintf(stderr, "call: %s", node->u.name);
             break;
         case KIND_CMD_SET:
-            printf("set: %s", node->u.name);
+            fprintf(stderr, "set: %s", node->u.name);
             break;
         case KIND_EXPR_VALUE:
-            printf("value: %f", node->u.value);
+            fprintf(stderr, "value: %f", node->u.value);
             break;
         case KIND_EXPR_NAME:
-            printf("name: %s", node->u.name);
+            fprintf(stderr, "name: %s", node->u.name);
             break;
         case KIND_EXPR_BINOP:
-            printf("binop: %c", node->u.op);
+            fprintf(stderr, "binop: %c", node->u.op);
             break;
         case KIND_EXPR_UNOP:
-            printf("unop: %c", node->u.op);
+            fprintf(stderr, "unop: %c", node->u.op);
             break;
         case KIND_EXPR_FUNC:
-            printf("func: ");
+            fprintf(stderr, "func: ");
             switch (node->u.func) {
-                case FUNC_COS:     printf("cos"); break;
-                case FUNC_SIN:     printf("sin"); break;
-                case FUNC_TAN:     printf("tan"); break;
-                case FUNC_SQRT:    printf("sqrt"); break;
-                case FUNC_RANDOM:  printf("random"); break;
-                default:           printf("unknown func");
+                case FUNC_COS:     fprintf(stderr, "cos"); break;
+                case FUNC_SIN:     fprintf(stderr, "sin"); break;
+                case FUNC_TAN:     fprintf(stderr, "tan"); break;
+                case FUNC_SQRT:    fprintf(stderr, "sqrt"); break;
+                case FUNC_RANDOM:  fprintf(stderr, "random"); break;
+                default:           fprintf(stderr, "unknown func");
             }
             break;
         default: break;
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 
     for (size_t i = 0; i < node->children_count; i++) {
         if (node->children[i]) {
@@ -571,4 +970,8 @@ static void print_ast_internal(const struct ast_node *node, const int indent) {
 
 void ast_print(const struct ast *self) {
     print_ast_internal(self->unit, 0);
+}
+
+double deg_to_rad(const double deg) {
+    return deg * PI / 180.0;
 }

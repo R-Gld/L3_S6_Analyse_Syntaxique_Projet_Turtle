@@ -133,8 +133,19 @@ void context_destroy(const struct context *self);
 // print the tree as if it was a Turtle program
 void ast_print(const struct ast *self);
 
-static void print_ast_internal(const struct ast_node *node, int indent);
+void print_ast_internal(const struct ast_node *node, int indent);
 // evaluate the tree and generate some basic primitives
 void ast_eval(const struct ast *self, struct context *ctx);
 
+void move_to(struct context *ctx, double x, double y);
+double eval_expr(const struct ast_node *node, struct context *ctx);
+
+void check_procedure_recurs(const struct ast_node *node, bool in_proc);
+
+void eval_cmd(struct ast_node *node, struct context *ctx);
+
+double deg_to_rad(double deg);
+
+struct ast_node *get_variable(const struct ast_node* name, const struct context *ctx);
+struct ast_node *get_procedure(const struct ast_node* name, const struct context *ctx);
 #endif /* TURTLE_AST_H */
